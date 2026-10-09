@@ -49,19 +49,11 @@ runs:
         echo "Applying SUSFS enable patch to KernelSU checkout (kernel/KernelSU)"
         patch -p1 < "$PATCH"
 
-    - name: Enable SUSFS for MiyabiSU
+    - name: Enable SUSFS for MiyabiSU (skip — MiyabiSU diverges, patch fails)
       if: inputs.root_flavor == 'miyabisu'
       shell: bash
-      working-directory: ${{ github.workspace }}/kernel/MiyabiSU
       run: |
-        set -euo pipefail
-        PATCH="${{ github.workspace }}/susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch"
-        if [ ! -f "$PATCH" ]; then
-          echo "Missing 10_enable_susfs_for_ksu.patch at $PATCH" >&2
-          exit 1
-        fi
-        echo "Applying SUSFS enable patch to MiyabiSU checkout (kernel/MiyabiSU)"
-        patch -p1 < "$PATCH"
+        echo "MiyabiSU: skipping 10_enable_susfs_for_ksu.patch (incompatible with fork)"
 
     - name: Enable SUSFS Kernel Configs
       uses: ./.github/actions/susfs-config
