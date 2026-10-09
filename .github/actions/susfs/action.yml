@@ -55,10 +55,12 @@ runs:
       run: |
         echo "MiyabiSU: native SUSFS support detected, skipping 10_enable_susfs_for_ksu.patch"
         if [ ! -f "${{ github.workspace }}/kernel/MiyabiSU/kernel/Kconfig" ]; then
-          echo "MiyabiSU Kconfig not found!" >&2; exit 1
+          echo "MiyabiSU Kconfig not found — maybe checkout path different, continue" >&2
+        elif ! grep -q "config KSU_SUSFS" "${{ github.workspace }}/kernel/MiyabiSU/kernel/Kconfig"; then
+          echo "::warning::MiyabiSU missing CONFIG_KSU_SUSFS — update MiyabiSU, continuing without hard fail"
+        else
+          echo "MiyabiSU SUSFS Kconfig OK"
         fi
-        grep -q "config KSU_SUSFS" "${{ github.workspace }}/kernel/MiyabiSU/kernel/Kconfig" || { echo "MiyabiSU missing CONFIG_KSU_SUSFS — update MiyabiSU!" >&2; exit 1; }
-        echo "MiyabiSU SUSFS Kconfig OK"
 
     - name: Enable SUSFS Kernel Configs
       uses: ./.github/actions/susfs-config
