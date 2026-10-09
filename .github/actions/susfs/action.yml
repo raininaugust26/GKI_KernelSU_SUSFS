@@ -21,7 +21,7 @@ inputs:
     description: 'Kernel sublevel'
     required: true
   root_flavor:
-    description: 'Selected root implementation (kernelsu / next / resukisu / sukisu-ultra). KernelSU (tiann main) needs the 10_enable_susfs_for_ksu patch; other flavors already ship SUSFS.'
+    description: 'Selected root implementation (kernelsu / next / resukisu / sukisu-ultra / miyabisu). KernelSU (tiann main) needs the 10_enable_susfs_for_ksu patch; other flavors including MiyabiSU ship native SUSFS.'
     required: false
     default: ""
 
@@ -49,11 +49,16 @@ runs:
         echo "Applying SUSFS enable patch to KernelSU checkout (kernel/KernelSU)"
         patch -p1 < "$PATCH"
 
-    - name: Enable SUSFS for MiyabiSU (skip — MiyabiSU diverges, patch fails)
+    - name: Enable SUSFS for MiyabiSU (native — no patch needed)
       if: inputs.root_flavor == 'miyabisu'
       shell: bash
       run: |
-        echo "MiyabiSU: skipping 10_enable_susfs_for_ksu.patch (incompatible with fork)"
+        echo "MiyabiSU: native SUSFS support detected, skipping 10_enable_susfs_for_ksu.patch"
+        if [ ! -f "${{ github.workspace }}/kernel/MiyabiSU/kernel/Kconfig" ]; then
+          echo "MiyabiSU Kconfig not found!" >&2; exit 1
+        fi
+        grep -q "config KSU_SUSFS" "${{ github.workspace }}/kernel/MiyabiSU/kernel/Kconfig" || { echo "MiyabiSU missing CONFIG_KSU_SUSFS — update MiyabiSU!" >&2; exit 1; }
+        echo "MiyabiSU SUSFS Kconfig OK"
 
     - name: Enable SUSFS Kernel Configs
       uses: ./.github/actions/susfs-config
